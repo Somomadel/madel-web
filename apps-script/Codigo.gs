@@ -124,7 +124,10 @@ function marcarEmailEnviado(numFila, exito) {
  */
 function enviarBienvenida(datos) {
   const nombre = (datos.nombre || '').trim();
-  const cuerpo =
+
+  // Versión de texto plano (respaldo). Los acentos viajan correctos porque
+  // htmlBody fuerza UTF-8; este texto es para clientes que no muestran HTML.
+  const cuerpoTexto =
     'Hola ' + nombre + ', soy ' + CONFIG.REMITENTE + '. Recibimos tu mensaje y nos ' +
     'encantaría conocer mejor tu proyecto para ayudarte de la mejor forma.\n\n' +
     'Cuéntanos: ¿ya tienes página web o partes desde cero? ¿Atiendes a tus clientes ' +
@@ -133,11 +136,26 @@ function enviarBienvenida(datos) {
     CONFIG.URL_SITIO + '\n\n' +
     'Quedamos atentos a tu respuesta.\n— Equipo Madel';
 
+  // Versión HTML (la que verá el cliente). El htmlBody se envía como UTF-8,
+  // así que los acentos, ¿, ¡ y — se muestran correctamente.
+  const cuerpoHtml =
+    '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1d1d1f;line-height:1.6;max-width:520px;">' +
+      '<p>Hola <strong>' + nombre + '</strong>, soy ' + CONFIG.REMITENTE + '. Recibimos tu mensaje y nos ' +
+      'encantaría conocer mejor tu proyecto para ayudarte de la mejor forma.</p>' +
+      '<p>Cuéntanos: ¿ya tienes página web o partes desde cero? ¿Atiendes a tus clientes ' +
+      'por WhatsApp? Con eso podemos proponerte algo a tu medida.</p>' +
+      '<p>Mientras tanto, te invitamos a conocernos más a fondo aquí:</p>' +
+      '<p><a href="' + CONFIG.URL_SITIO + '" ' +
+        'style="background:#1e7d4f;color:#ffffff;padding:11px 20px;border-radius:6px;' +
+        'text-decoration:none;display:inline-block;font-weight:bold;">Conoce Madel</a></p>' +
+      '<p>Quedamos atentos a tu respuesta.<br>— Equipo Madel</p>' +
+    '</div>';
+
   GmailApp.sendEmail(
     (datos.correo || '').trim(),
     '¡Gracias por contactarnos, ' + nombre + '! 👋',
-    cuerpo,
-    { name: 'Madel · ' + CONFIG.REMITENTE, replyTo: CONFIG.EMAIL_MADEL }
+    cuerpoTexto,
+    { name: 'Madel - ' + CONFIG.REMITENTE, replyTo: CONFIG.EMAIL_MADEL, htmlBody: cuerpoHtml }
   );
 }
 
