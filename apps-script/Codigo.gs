@@ -125,8 +125,9 @@ function marcarEmailEnviado(numFila, exito) {
 function enviarBienvenida(datos) {
   const nombre = (datos.nombre || '').trim();
 
-  // Versión de texto plano (respaldo). Los acentos viajan correctos porque
-  // htmlBody fuerza UTF-8; este texto es para clientes que no muestran HTML.
+  // El cuerpo que ve el cliente es el HTML (abajo), que usa entidades HTML (&iacute; etc.)
+  // — bytes ASCII puros que el cliente de correo decodifica, inmunes a problemas de
+  // codificación de GmailApp. Este texto plano es solo el respaldo para clientes sin HTML.
   const cuerpoTexto =
     'Hola ' + nombre + ', soy ' + CONFIG.REMITENTE + '. Recibimos tu mensaje y nos ' +
     'encantaría conocer mejor tu proyecto para ayudarte de la mejor forma.\n\n' +
@@ -136,24 +137,23 @@ function enviarBienvenida(datos) {
     CONFIG.URL_SITIO + '\n\n' +
     'Quedamos atentos a tu respuesta.\n— Equipo Madel';
 
-  // Versión HTML (la que verá el cliente). El htmlBody se envía como UTF-8,
-  // así que los acentos, ¿, ¡ y — se muestran correctamente.
+  // Versión HTML (la que verá el cliente). Entidades HTML = ASCII puro en el fuente.
   const cuerpoHtml =
     '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1d1d1f;line-height:1.6;max-width:520px;">' +
       '<p>Hola <strong>' + nombre + '</strong>, soy ' + CONFIG.REMITENTE + '. Recibimos tu mensaje y nos ' +
-      'encantaría conocer mejor tu proyecto para ayudarte de la mejor forma.</p>' +
-      '<p>Cuéntanos: ¿ya tienes página web o partes desde cero? ¿Atiendes a tus clientes ' +
+      'encantar&iacute;a conocer mejor tu proyecto para ayudarte de la mejor forma.</p>' +
+      '<p>Cu&eacute;ntanos: &iquest;ya tienes p&aacute;gina web o partes desde cero? &iquest;Atiendes a tus clientes ' +
       'por WhatsApp? Con eso podemos proponerte algo a tu medida.</p>' +
-      '<p>Mientras tanto, te invitamos a conocernos más a fondo aquí:</p>' +
+      '<p>Mientras tanto, te invitamos a conocernos m&aacute;s a fondo aqu&iacute;:</p>' +
       '<p><a href="' + CONFIG.URL_SITIO + '" ' +
         'style="background:#1e7d4f;color:#ffffff;padding:11px 20px;border-radius:6px;' +
         'text-decoration:none;display:inline-block;font-weight:bold;">Conoce Madel</a></p>' +
-      '<p>Quedamos atentos a tu respuesta.<br>— Equipo Madel</p>' +
+      '<p>Quedamos atentos a tu respuesta.<br>&mdash; Equipo Madel</p>' +
     '</div>';
 
   GmailApp.sendEmail(
     (datos.correo || '').trim(),
-    '¡Gracias por contactarnos, ' + nombre + '! 👋',
+    'Gracias por contactarnos, ' + nombre + '!',
     cuerpoTexto,
     { name: 'Madel - ' + CONFIG.REMITENTE, replyTo: CONFIG.EMAIL_MADEL, htmlBody: cuerpoHtml }
   );
@@ -165,17 +165,19 @@ function enviarBienvenida(datos) {
 function notificarMadel(datos) {
   const nombre = (datos.nombre || '').trim();
   const urlHoja = 'https://docs.google.com/spreadsheets/d/' + CONFIG.SHEET_ID;
+  // Emojis y símbolos como entidades numéricas HTML (ASCII puro) para que no se
+  // corrompan al enviarse. &#128276;=🔔 &#128100;=👤 &#128231;=📧 &#128241;=📱 &#128336;=🕐
   const html =
-    '<h2>🔔 Nuevo lead — ' + nombre + '</h2>' +
-    '<p><strong>👤 Nombre:</strong> ' + nombre + '<br>' +
-    '<strong>📧 Correo:</strong> ' + (datos.correo || '').trim() + '<br>' +
-    '<strong>📱 Celular:</strong> ' + ((datos.celular || '').trim() || 'No proporcionado') + '<br>' +
-    '<strong>🕐 Fecha:</strong> ' + new Date().toLocaleString('es-CO') + '</p>' +
+    '<h2>&#128276; Nuevo lead &mdash; ' + nombre + '</h2>' +
+    '<p><strong>&#128100; Nombre:</strong> ' + nombre + '<br>' +
+    '<strong>&#128231; Correo:</strong> ' + (datos.correo || '').trim() + '<br>' +
+    '<strong>&#128241; Celular:</strong> ' + ((datos.celular || '').trim() || 'No proporcionado') + '<br>' +
+    '<strong>&#128336; Fecha:</strong> ' + new Date().toLocaleString('es-CO') + '</p>' +
     '<p><a href="' + urlHoja + '" ' +
     'style="background:#1e7d4f;color:#fff;padding:10px 18px;border-radius:6px;' +
-    'text-decoration:none;display:inline-block;">→ Ver en Google Sheets</a></p>';
+    'text-decoration:none;display:inline-block;">&rarr; Ver en Google Sheets</a></p>';
 
-  GmailApp.sendEmail(CONFIG.EMAIL_MADEL, '🔔 Nuevo lead — ' + nombre, '', {
+  GmailApp.sendEmail(CONFIG.EMAIL_MADEL, 'Nuevo lead - ' + nombre, '', {
     htmlBody: html
   });
 }
