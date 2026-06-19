@@ -2646,20 +2646,18 @@ print("entrega: 5 dias")`,
 
     lfSubmit.disabled = true;
     try{
-      const res = await fetch('https://formsubmit.co/ajax/Somosmadel@gmail.com', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbyv0xdSZI3d0zDKbzncu3JlgomUDCtaG5DZuBNWCQyADhNM-lGMtiZ2ME5DC6Qd-iXzWQ/exec', {
         method:'POST',
-        headers:{'Content-Type':'application/json', 'Accept':'application/json'},
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
         body: JSON.stringify({
-          _subject:'🟢 Nuevo lead desde la página de Madel',
-          _template:'table',
-          _captcha:'false',
-          'Nombre / Empresa': nombre,
-          'Correo electrónico': correo,
-          'Celular': celular || 'No proporcionado',
-          'Idioma de la página': currentLang.toUpperCase()
+          nombre: nombre,
+          correo: correo,
+          celular: celular,
+          fuente: 'Modal inicio · ' + currentLang.toUpperCase()
         })
       });
-      if(!res.ok) throw new Error('send-failed');
+      const data = await res.json().catch(() => ({ ok: res.ok }));
+      if(!data.ok) throw new Error('send-failed');
       document.getElementById('leadFormWrap').style.display = 'none';
       document.getElementById('leadSuccess').classList.add('show');
       setTimeout(closeLeadModal, 3500);
