@@ -188,7 +188,7 @@ function revisarRespuestas() {
   const cResp = COLS.indexOf('Respuesta del cliente');
 
   for (let i = 1; i < datos.length; i++) {
-    if (String(datos[i][cResp]).trim().toLowerCase() === 'sí') continue;
+    if (String(datos[i][cResp]).normalize('NFC').trim().toLowerCase() === 'sí') continue;
 
     const correo = String(datos[i][cCorreo]).trim();
     if (!correo || correo.indexOf('@') === -1) continue;
@@ -206,17 +206,25 @@ function revisarRespuestas() {
  * ¿Hay un correo ENTRANTE de `correo` posterior a `desde`?
  */
 function respondio(correo, desde) {
-  // Filtra por remitente y fecha; after evita reprocesar histórico.
-  const yyyy = desde.getFullYear();
-  const mm = ('0' + (desde.getMonth() + 1)).slice(-2);
-  const dd = ('0' + desde.getDate()).slice(-2);
+  // El filtro `after:` de Gmail es por día y depende de la zona horaria de la cuenta,
+  // así que ampliamos la ventana un día hacia atrás para no perder respuestas cerca de
+  // medianoche o por desfase de zona horaria. El filtro estricto `m.getDate() > desde`
+  // de abajo es la verdadera compuerta y evita falsos positivos del histórico.
+  const ventana = new Date(desde.getTime() - 24 * 60 * 60 * 1000);
+  const yyyy = ventana.getFullYear();
+  const mm = ('0' + (ventana.getMonth() + 1)).slice(-2);
+  const dd = ('0' + ventana.getDate()).slice(-2);
   const query = 'from:' + correo + ' after:' + yyyy + '/' + mm + '/' + dd;
+  const objetivo = correo.toLowerCase();
   const hilos = GmailApp.search(query, 0, 10);
   for (const hilo of hilos) {
     const mensajes = hilo.getMessages();
     for (const m of mensajes) {
-      const fromAddr = m.getFrom().toLowerCase();
-      if (fromAddr.indexOf(correo.toLowerCase()) !== -1 && m.getDate() > desde) {
+      // Extrae solo la dirección de "Nombre <correo@dominio>" para comparar exacto
+      // y evitar que ana@x.com coincida con ana@x.com.attacker.net.
+      const match = m.getFrom().toLowerCase().match(/[^\s<>]+@[^\s<>]+/);
+      const fromAddr = match ? match[0] : '';
+      if (fromAddr === objetivo && m.getDate() > desde) {
         return true;
       }
     }
