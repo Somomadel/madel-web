@@ -87,11 +87,12 @@ function getHoja() {
  */
 function registrarLead(datos) {
   const hoja = getHoja();
+  const celular = (datos.celular || '').trim() || 'No proporcionado';
   const fila = [
     new Date(),                                   // Fecha y Hora
     (datos.nombre || '').trim(),                  // Nombre
     (datos.correo || '').trim(),                  // Correo
-    (datos.celular || '').trim() || 'No proporcionado', // Celular
+    '',                                           // Celular (se escribe aparte como texto)
     '🟡 Nuevo',                                   // Estado
     '',                                           // Email enviado (se llena tras enviar)
     'No',                                         // Respuesta del cliente
@@ -99,7 +100,14 @@ function registrarLead(datos) {
     datos.fuente || 'Modal inicio'                // Fuente
   ];
   hoja.appendRow(fila);
-  return hoja.getLastRow();
+  const numFila = hoja.getLastRow();
+  // Escribir el celular en una celda ya formateada como texto, para que
+  // "+57 300..." no se interprete como fórmula (appendRow sí lo haría).
+  const colCel = COLS.indexOf('Celular') + 1;
+  const celda = hoja.getRange(numFila, colCel);
+  celda.setNumberFormat('@');
+  celda.setValue(celular);
+  return numFila;
 }
 
 /**
