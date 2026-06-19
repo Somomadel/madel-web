@@ -52,11 +52,41 @@ function test_validarLead() {
 }
 
 /**
+ * Devuelve la pestaña de leads, creándola con sus encabezados si no existe.
+ * Garantiza que la fila 1 tenga siempre los encabezados de COLS.
+ */
+function getHoja() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  let hoja = ss.getSheetByName(CONFIG.SHEET_NAME);
+  if (!hoja) {
+    // Si solo hay una pestaña vacía por defecto, la reutilizamos; si no, creamos una.
+    const todas = ss.getSheets();
+    if (todas.length === 1 && todas[0].getLastRow() === 0) {
+      hoja = todas[0].setName(CONFIG.SHEET_NAME);
+    } else {
+      hoja = ss.insertSheet(CONFIG.SHEET_NAME);
+    }
+  }
+  // Asegurar encabezados en la fila 1.
+  const primera = hoja.getRange(1, 1, 1, COLS.length).getValues()[0];
+  const tieneEncabezados = primera[0] === COLS[0];
+  if (!tieneEncabezados) {
+    hoja.getRange(1, 1, 1, COLS.length).setValues([COLS]);
+    hoja.getRange(1, 1, 1, COLS.length).setFontWeight('bold');
+    hoja.setFrozenRows(1);
+  }
+  // Forzar la columna Celular a texto para que números como "+57 300..."
+  // no se interpreten como fórmula (evita #ERROR!).
+  const colCel = COLS.indexOf('Celular') + 1;
+  hoja.getRange(2, colCel, Math.max(hoja.getMaxRows() - 1, 1), 1).setNumberFormat('@');
+  return hoja;
+}
+
+/**
  * Inserta una fila de lead y devuelve el número de fila escrita.
  */
 function registrarLead(datos) {
-  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const hoja = ss.getSheetByName(CONFIG.SHEET_NAME);
+  const hoja = getHoja();
   const fila = [
     new Date(),                                   // Fecha y Hora
     (datos.nombre || '').trim(),                  // Nombre
@@ -76,8 +106,7 @@ function registrarLead(datos) {
  * Escribe el resultado del envío del correo al cliente en la columna F.
  */
 function marcarEmailEnviado(numFila, exito) {
-  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const hoja = ss.getSheetByName(CONFIG.SHEET_NAME);
+  const hoja = getHoja();
   const colEmailEnviado = COLS.indexOf('Email enviado') + 1; // 1-based
   hoja.getRange(numFila, colEmailEnviado).setValue(exito ? 'Sí' : 'Fallo');
 }
@@ -150,7 +179,7 @@ function doPost(e) {
     return _json({ ok: true });
   } catch (err) {
     Logger.log('doPost error: ' + err);
-    return _json({ ok: false, error: 'server-error' });
+    return _json({ ok: false, error: 'server-error', detalle: String(err) });
   }
 }
 
@@ -178,8 +207,7 @@ function test_doPost() {
  * respondieron por correo. Solo procesa filas con "Respuesta del cliente = No".
  */
 function revisarRespuestas() {
-  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const hoja = ss.getSheetByName(CONFIG.SHEET_NAME);
+  const hoja = getHoja();
   const datos = hoja.getDataRange().getValues(); // incluye encabezados en datos[0]
 
   const cCorreo = COLS.indexOf('Correo');
