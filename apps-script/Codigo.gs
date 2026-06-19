@@ -5,7 +5,7 @@
 
 // ===== CONFIGURACIÓN =====
 const CONFIG = {
-  SHEET_ID: 'PEGAR_AQUI_EL_ID_DE_LA_HOJA',   // se llena durante la configuración en Google
+  SHEET_ID: '1OTxriDlNgafxJOzAeEeQXeOi0eNtqfc2w_RejlEVt-8',
   SHEET_NAME: 'Leads',
   EMAIL_MADEL: 'Somosmadel@gmail.com',
   URL_SITIO: 'https://somomadel.github.io/madel-web/',
