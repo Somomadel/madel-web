@@ -128,32 +128,46 @@ function enviarBienvenida(datos) {
   // El cuerpo que ve el cliente es el HTML (abajo), que usa entidades HTML (&iacute; etc.)
   // — bytes ASCII puros que el cliente de correo decodifica, inmunes a problemas de
   // codificación de GmailApp. Este texto plano es solo el respaldo para clientes sin HTML.
+  // Texto que parece conversación 1:1 (no boletín): invita a responder, ofrece
+  // WhatsApp y cierra con firma real. Esto reduce las señales de spam.
   const cuerpoTexto =
-    'Hola ' + nombre + ', soy ' + CONFIG.REMITENTE + '. Recibimos tu mensaje y nos ' +
+    'Hola ' + nombre + ', soy ' + CONFIG.REMITENTE + ' de Madel. Recibimos tu mensaje y nos ' +
     'encantaría conocer mejor tu proyecto para ayudarte de la mejor forma.\n\n' +
     'Cuéntanos: ¿ya tienes página web o partes desde cero? ¿Atiendes a tus clientes ' +
     'por WhatsApp? Con eso podemos proponerte algo a tu medida.\n\n' +
-    'Mientras tanto, te invitamos a conocernos más a fondo aquí:\n' +
-    CONFIG.URL_SITIO + '\n\n' +
-    'Quedamos atentos a tu respuesta.\n— Equipo Madel';
+    'Puedes responder directamente a este correo o escribirnos por WhatsApp al ' +
+    '+57 317 750 8039. Si quieres ver ejemplos de nuestro trabajo, visita ' + CONFIG.URL_SITIO + '\n\n' +
+    'Quedamos atentos a tu respuesta.\n\n' +
+    '— ' + CONFIG.REMITENTE + '\n' +
+    'Madel · Agencia digital\n' +
+    'WhatsApp: +57 317 750 8039\n' +
+    CONFIG.URL_SITIO;
 
   // Versión HTML (la que verá el cliente). Entidades HTML = ASCII puro en el fuente.
+  // Diseño sobrio (sin botón tipo "marketing") con enlace inline y firma: parece
+  // un correo personal, lo que ayuda a llegar a la bandeja principal.
   const cuerpoHtml =
     '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1d1d1f;line-height:1.6;max-width:520px;">' +
-      '<p>Hola <strong>' + nombre + '</strong>, soy ' + CONFIG.REMITENTE + '. Recibimos tu mensaje y nos ' +
+      '<p>Hola <strong>' + nombre + '</strong>, soy ' + CONFIG.REMITENTE + ' de Madel. Recibimos tu mensaje y nos ' +
       'encantar&iacute;a conocer mejor tu proyecto para ayudarte de la mejor forma.</p>' +
       '<p>Cu&eacute;ntanos: &iquest;ya tienes p&aacute;gina web o partes desde cero? &iquest;Atiendes a tus clientes ' +
       'por WhatsApp? Con eso podemos proponerte algo a tu medida.</p>' +
-      '<p>Mientras tanto, te invitamos a conocernos m&aacute;s a fondo aqu&iacute;:</p>' +
-      '<p><a href="' + CONFIG.URL_SITIO + '" ' +
-        'style="background:#1e7d4f;color:#ffffff;padding:11px 20px;border-radius:6px;' +
-        'text-decoration:none;display:inline-block;font-weight:bold;">Conoce Madel</a></p>' +
-      '<p>Quedamos atentos a tu respuesta.<br>&mdash; Equipo Madel</p>' +
+      '<p>Puedes responder directamente a este correo o escribirnos por WhatsApp al ' +
+      '<a href="https://wa.me/573177508039" style="color:#1e7d4f;">+57 317 750 8039</a>. ' +
+      'Si quieres ver ejemplos de nuestro trabajo, visita ' +
+      '<a href="' + CONFIG.URL_SITIO + '" style="color:#1e7d4f;">nuestra p&aacute;gina</a>.</p>' +
+      '<p>Quedamos atentos a tu respuesta.</p>' +
+      '<p style="margin-top:18px;color:#555;font-size:13px;line-height:1.5;">' +
+        '&mdash; ' + CONFIG.REMITENTE + '<br>' +
+        '<strong>Madel</strong> &middot; Agencia digital<br>' +
+        'WhatsApp: +57 317 750 8039<br>' +
+        '<a href="' + CONFIG.URL_SITIO + '" style="color:#555;">' + CONFIG.URL_SITIO + '</a>' +
+      '</p>' +
     '</div>';
 
   GmailApp.sendEmail(
     (datos.correo || '').trim(),
-    'Gracias por contactarnos, ' + nombre + '!',
+    'Hola ' + nombre + ', recibimos tu mensaje',
     cuerpoTexto,
     { name: 'Madel - ' + CONFIG.REMITENTE, replyTo: CONFIG.EMAIL_MADEL, htmlBody: cuerpoHtml }
   );
